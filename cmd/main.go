@@ -1,24 +1,16 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"librongo/internal/db"
+	"log"
 )
 
 func main() {
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
+	database, err := db.NewSQLite("db/books.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer database.Close()
 
-	r.Post("/eguro/{basta}", getNegra)
-
-	http.ListenAndServe(":3000", r)
-}
-
-func getNegra(w http.ResponseWriter, r *http.Request) {
-	basta := chi.URLParam(r, "basta")
-	w.Write([]byte(fmt.Sprintf("Eguro, ahi va: %s", basta)))
-	return
+	log.Println("Conexión a la BD marcha joya")
 }
