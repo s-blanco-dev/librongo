@@ -1,16 +1,28 @@
 package main
 
 import (
+	"librongo/internal/api"
 	"librongo/internal/db"
+	"librongo/internal/handler"
+	"librongo/internal/repository"
+	"librongo/internal/services"
 	"log"
+	"net/http"
 )
 
 func main() {
-	database, err := db.NewSQLite("db/books.db")
+	database, err := db.NewSQLite("../db/books.db")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer database.Close()
 
-	log.Println("Conexión a la BD marcha joya")
+	bookRepo := repository.NewBookRepository(database)
+	bookService := services.NewBookService(bookRepo)
+	bookHandler := handler.NewBookHandler(bookService)
+
+	router := api.SetupRoutes(bookHandler)
+
+	http.ListenAndServe(":8080", router)
 }
+

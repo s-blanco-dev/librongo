@@ -3,6 +3,8 @@ package db
 import (
 	"database/sql"
 	"fmt"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func NewSQLite(path string) (*sql.DB, error) {

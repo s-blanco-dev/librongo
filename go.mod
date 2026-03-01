@@ -2,4 +2,7 @@ module librongo
 
 go 1.25.5
 
-require github.com/go-chi/chi/v5 v5.2.5 // indirect
+require (
+	github.com/go-chi/chi/v5 v5.2.5 // indirect
+	github.com/mattn/go-sqlite3 v1.14.34 // indirect
+)
