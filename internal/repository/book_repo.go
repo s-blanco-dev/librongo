@@ -13,6 +13,10 @@ func NewBookRepository(db *sql.DB) *BookRepository {
 	return &BookRepository{db: db}
 }
 
+func (r *BookRepository) BeginTx() (*sql.Tx, error) {
+	return r.db.Begin()
+}
+
 func (r *BookRepository) GetByID(id int) (*models.Book, error) {
 	query := `
 	SELECT 
@@ -113,4 +117,64 @@ func (r *BookRepository) GetByID(id int) (*models.Book, error) {
 	}
 
 	return book, nil
+}
+
+func (r *BookRepository) CreateFromModel(book *models.Book) error {
+
+	return nil
+}
+
+/* METODO PARA INSERTAR LIBRO BASE */
+func (r *BookRepository) Create(tx *sql.Tx, book *models.BookCreate) (int64, error) {
+	query := `
+		INSERT INTO books 
+		(name, year, language_code, isbn, edition, cover_url, editorial_id, pages, location)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`
+
+	result, err := tx.Exec(
+		query,
+		book.Name,
+		book.Year,
+		book.Language,
+		book.ISBN,
+		book.Edition,
+		book.CoverURL,
+		book.EditorialID,
+		book.Pages,
+		book.Location,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.LastInsertId()
+}
+
+// ======================
+/* METODOS AUXILIARES */
+// ======================
+
+func (r *BookRepository) AddAuthors(tx *sql.Tx, bookID int64, authors []models.IDList) error {
+	query := `INSERT INTO book_authors (book_id, author_id) VALUES (?, ?)`
+
+	for _, author := range authors {
+		_, err := tx.Exec(query, bookID, author.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *BookRepository) AddTopics(tx *sql.Tx, bookID int64, topics []models.IDList) error {
+	query := `INSERT INTO book_topics (book_id, topic_id) VALUES (?, ?)`
+
+	for _, topic := range topics {
+		_, err := tx.Exec(query, bookID, topic.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

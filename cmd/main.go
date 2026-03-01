@@ -21,8 +21,11 @@ func main() {
 	bookService := services.NewBookService(bookRepo)
 	bookHandler := handler.NewBookHandler(bookService)
 
-	router := api.SetupRoutes(bookHandler)
+	authorRepo := repository.NewAuthorRepository(database)
+	authorService := services.NewAuthorService(authorRepo)
+	authorHandler := handler.NewAuthorHandler(authorService)
+
+	router := api.SetupRoutes(bookHandler, authorHandler)
 
 	http.ListenAndServe(":8080", router)
 }
-

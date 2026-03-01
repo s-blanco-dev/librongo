@@ -11,48 +11,49 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type BookHandler struct {
-	service *services.BookService
+type AuthorHandler struct {
+	service *services.AuthorService
 }
 
-func NewBookHandler(service *services.BookService) *BookHandler {
-	return &BookHandler{
+func NewAuthorHandler(service *services.AuthorService) *AuthorHandler {
+	return &AuthorHandler{
 		service: service,
 	}
 }
 
-func (h *BookHandler) GetBookByID(w http.ResponseWriter, r *http.Request) {
-	idParam := chi.URLParam(r, "id")
+func (h *AuthorHandler) GetAuthorByID(w http.ResponseWriter, r *http.Request) {
 
+	idParam := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idParam)
+
 	if err != nil {
 		http.Error(w, "invalid id", http.StatusBadRequest)
 		return
 	}
 
-	book, err := h.service.GetBookByID(id)
+	author, err := h.service.GetAuthorByID(id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "book not found", http.StatusNotFound)
+			http.Error(w, "No hay autor con ese id", http.StatusBadRequest)
 			return
 		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "ojo", http.StatusBadRequest)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(book)
+	json.NewEncoder(w).Encode(author)
 }
 
-func (h *BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
-	var book models.BookCreate
+func (h *AuthorHandler) CreateAuthor(w http.ResponseWriter, r *http.Request) {
+	var author models.Author
 
-	if err := json.NewDecoder(r.Body).Decode(&book); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&author); err != nil {
 		http.Error(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
-	id, err := h.service.CreateBook(&book)
+	id, err := h.service.CreateAuthor(&author)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
