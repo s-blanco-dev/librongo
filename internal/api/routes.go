@@ -13,6 +13,7 @@ func SetupRoutes(bookHandler *handler.BookHandler, authorHandler *handler.Author
 	r.Route("/books", func(r chi.Router) {
 		r.Get("/{id}", bookHandler.GetBookByID)
 		r.Post("/add", bookHandler.CreateBook)
+		r.Get("/all", bookHandler.GetAllBooks)
 	})
 
 	r.Route("/author", func(r chi.Router) {

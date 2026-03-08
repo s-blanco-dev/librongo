@@ -31,6 +31,19 @@ func (s *BookService) GetBookByID(id int) (*models.Book, error) {
 	return book, nil
 }
 
+func (s *BookService) GetAllBooks() ([]models.Book, error) {
+
+	bookMap, err := s.repo.GetAllBooks()
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return []models.Book{}, nil
+		}
+		return nil, err
+	}
+
+	return bookMap, nil
+}
+
 func (s *BookService) CreateBook(book *models.BookCreate) (int64, error) {
 	if book.Name == "" {
 		return 0, errors.New("plana cabeza tiene usted")

@@ -119,9 +119,123 @@ func (r *BookRepository) GetByID(id int) (*models.Book, error) {
 	return book, nil
 }
 
-func (r *BookRepository) CreateFromModel(book *models.Book) error {
+func (r *BookRepository) GetAllBooks() ([]models.Book, error) {
+	query := `
+	SELECT 
+		b.id, b.name, b.year, b.language_code, b.isbn, b.edition,
+		b.cover_url, b.pages, b.location,
+		e.id, e.name,
+		a.id, a.name,
+		t.id, t.name
+	FROM books b
+	LEFT JOIN editorials e ON b.editorial_id = e.id
+	LEFT JOIN book_authors ba ON b.id = ba.book_id
+	LEFT JOIN authors a ON ba.author_id = a.id
+	LEFT JOIN book_topics bt ON b.id = bt.book_id
+	LEFT JOIN topics t ON bt.topic_id = t.id
+	ORDER BY b.id
+	`
 
-	return nil
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	booksMap := make(map[int]*models.Book)
+
+	for rows.Next() {
+		var (
+			bID, year, pages                                  int
+			name, language, isbn, edition, coverURL, location string
+
+			editorialID   sql.NullInt64
+			editorialName sql.NullString
+
+			authorID   sql.NullInt64
+			authorName sql.NullString
+
+			topicID   sql.NullInt64
+			topicName sql.NullString
+		)
+
+		err := rows.Scan(
+			&bID, &name, &year, &language, &isbn, &edition,
+			&coverURL, &pages, &location,
+			&editorialID, &editorialName,
+			&authorID, &authorName,
+			&topicID, &topicName,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		book, exists := booksMap[bID]
+		if !exists {
+			book = &models.Book{
+				ID:       bID,
+				Name:     name,
+				Year:     year,
+				Language: language,
+				ISBN:     isbn,
+				Edition:  edition,
+				CoverURL: coverURL,
+				Pages:    pages,
+				Location: location,
+				Authors:  []models.Author{},
+				Topics:   []models.Topic{},
+			}
+
+			if editorialID.Valid {
+				book.Editorial = &models.Editorial{
+					ID:   int(editorialID.Int64),
+					Name: editorialName.String,
+				}
+			}
+
+			booksMap[bID] = book
+		}
+
+		if authorID.Valid {
+			alreadyExists := false
+			for _, a := range book.Authors {
+				if a.ID == int(authorID.Int64) {
+					alreadyExists = true
+					break
+				}
+			}
+			if !alreadyExists {
+				book.Authors = append(book.Authors, models.Author{
+					ID:   int(authorID.Int64),
+					Name: authorName.String,
+				})
+			}
+		}
+
+		if topicID.Valid {
+			alreadyExists := false
+			for _, t := range book.Topics {
+				if t.ID == int(topicID.Int64) {
+					alreadyExists = true
+					break
+				}
+			}
+			if !alreadyExists {
+				book.Topics = append(book.Topics, models.Topic{
+					ID:   int(topicID.Int64),
+					Name: topicName.String,
+				})
+			}
+		}
+	}
+
+	// Convertir map a slice
+	var books []models.Book
+	for _, b := range booksMap {
+		books = append(books, *b)
+	}
+
+	return books, nil
 }
 
 /* METODO PARA INSERTAR LIBRO BASE */

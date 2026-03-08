@@ -21,6 +21,22 @@ func NewBookHandler(service *services.BookService) *BookHandler {
 	}
 }
 
+func (h *BookHandler) GetAllBooks(w http.ResponseWriter, r *http.Request) {
+	books, err := h.service.GetAllBooks()
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "book not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(books)
+}
+
 func (h *BookHandler) GetBookByID(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 
