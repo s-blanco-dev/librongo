@@ -21,6 +21,18 @@ func NewAuthorHandler(service *services.AuthorService) *AuthorHandler {
 	}
 }
 
+func (h *AuthorHandler) GetAllAuthors(w http.ResponseWriter, r *http.Request) {
+
+	authors, err := h.service.GetAllAuthors()
+	if err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(authors)
+}
+
 func (h *AuthorHandler) GetAuthorByID(w http.ResponseWriter, r *http.Request) {
 
 	idParam := chi.URLParam(r, "id")

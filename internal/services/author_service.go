@@ -15,6 +15,10 @@ func NewAuthorService(repo *repository.AuthorRepository) *AuthorService {
 	return &AuthorService{repo: repo}
 }
 
+func (s *AuthorService) GetAllAuthors() ([]models.Author, error) {
+	return s.repo.GetAll()
+}
+
 func (s *AuthorService) GetAuthorByID(id int) (*models.Author, error) {
 	if id <= 0 {
 		return nil, errors.New("Estás choto")

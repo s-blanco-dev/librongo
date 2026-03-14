@@ -17,6 +17,39 @@ func (r *AuthorRepository) BeginTx() (*sql.Tx, error) {
 	return r.db.Begin()
 }
 
+func (r *AuthorRepository) GetAll() ([]models.Author, error) {
+
+	query := `
+	SELECT id, name
+	FROM authors
+	ORDER BY name
+	`
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var authors []models.Author
+
+	for rows.Next() {
+		var author models.Author
+
+		err := rows.Scan(
+			&author.ID,
+			&author.Name,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		authors = append(authors, author)
+	}
+
+	return authors, nil
+}
+
 func (r *AuthorRepository) GetByID(id int) (*models.Author, error) {
 	query := `
 	SELECT id, name FROM authors WHERE id = ?;
