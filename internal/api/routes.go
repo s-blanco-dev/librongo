@@ -5,10 +5,17 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 )
 
 func SetupRoutes(bookHandler *handler.BookHandler, authorHandler *handler.AuthorHandler, topicHandler *handler.TopicHandler, editorialHandler *handler.EditorialHandler) http.Handler {
 	r := chi.NewRouter()
+
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"},
+	}))
 
 	r.Route("/books", func(r chi.Router) {
 		r.Get("/{id}", bookHandler.GetBookByID)
